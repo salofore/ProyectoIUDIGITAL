@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyectos IU</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="Stylecliente.css">
+</head>
+<body>
+    <header>
+        <h1><a href="Index.html">Proyectos IU</a></h1>
+        <nav>
+            <ul>
+                <li><a href="proyectos.html">Proyectos</a></li>                
+                <li><a href="Cliente.html">Cliente</a></li>
+                <li><a href="Etapa.html">Etapa</a></li>
+                <li><a href="TipoProyecto.html">Tipo proyecto</a></li>
+                <li><a href="Universidad.html">Universidad</a></li>           
+            </ul>
+        </nav>
+    </header>
+    
+    <h1>ADD cliente</h1>
+
+    <form id="agregar-cliente-form">
+      <input type="text" id="nombre" name="nombre" placeholder="Nombre" required>
+      <input type="email" id="email" name="email" placeholder="Email" required>
+      <button type="submit">Agregar Cliente</button>
+    </form>
+    
+    <!-- Tabla para mostrar la lista de clientes -->
+    <table id="cliente-tabla">
+      <h1>Clientes</h1>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cliente-lista"></tbody>
+    </table>
+  
+    <script>
+      async function mostrarClientes() {
+        const response = await fetch('/clientes');
+        const clientes = await response.json();
+        const clienteLista = document.getElementById('cliente-lista');  
+
+        clienteLista.innerHTML = '';  
+
+        clientes.forEach(cliente => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><input type="text" id="edit-nombre-${cliente._id}" value="${cliente.nombre}"></td>
+            <td><input type="email" id="edit-email-${cliente._id}" value="${cliente.email}"></td>
+            <td>
+              <button onclick="guardarEdicion('${cliente._id}')">Editar</button>
+              <button onclick="eliminarCliente('${cliente._id}')">Eliminar</button>
+            </td>
+          `;
+          clienteLista.appendChild(tr);
+        });
+      }
+  
+      async function eliminarCliente(id) {
+        const response = await fetch(`/clientes/${id}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          mostrarClientes();
+        } else {
+          alert('Error al eliminar el cliente. Por favor, intenta de nuevo.');
+        }
+      }
+  
+      async function guardarEdicion(id) {
+        const nuevoNombre = document.getElementById(`edit-nombre-${id}`).value;
+        const nuevoEmail = document.getElementById(`edit-email-${id}`).value;
+  
+        const response = await fetch(`/clientes/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ nombre: nuevoNombre, email: nuevoEmail })
+        });
+  
+        if (response.ok) {
+          mostrarClientes();
+        } else {
+          alert('Error al guardar la edición del cliente. Por favor, intenta de nuevo.');
+        }
+      }
+  
+      mostrarClientes();
+  
+      document.getElementById('agregar-cliente-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+  
+        const nombre = document.getElementById('nombre').value;
+        const email = document.getElementById('email').value;
+  
+        const response = await fetch('/clientes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({nombre, email }) // Agregar CodProyectoClient al objeto JSON
+        });
+  
+        if (response.ok) {
+          mostrarClientes();
+        } else {
+          alert('Error al agregar el cliente. Por favor, intenta de nuevo.');
+        }
+  
+        document.getElementById('nombre').value = '';
+        document.getElementById('email').value = '';
+      });
+    </script>
+
+
+    <footer>
+        <p>&copy; 2024 Proyectos IU. Todos los derechos reservados.</p>
+    </footer>
+</body>
+</html>

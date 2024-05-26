@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyectos IU</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="StyleUniversidad.css">
+</head>
+<body>
+    <header>
+        <h1><a href="Index.html">Proyectos IU</a></h1>
+        <nav>
+            <ul>
+                <li><a href="proyectos.html">Proyectos</a></li>                
+                <li><a href="Cliente.html">Cliente</a></li>
+                <li><a href="Etapa.html">Etapa</a></li>
+                <li><a href="TipoProyecto.html">Tipo proyecto</a></li>
+                <li><a href="Universidad.html">Universidad</a></li>           
+            </ul>
+        </nav>
+    </header>
+    
+    <h1>ADD Universidad proyecto</h1>
+
+    <form id="agregar-Universidad-form">
+      <input type="text" id="nombre" name="nombre" placeholder="Nombre" required>
+      <input type="text" id="direccion" name="direccion" placeholder="Direccion" required>    
+      <input type="text" id="telefono" name="telefono" placeholder="Telefono" required>              
+      <button type="submit">Agregar Universidad</button>
+  </form>   
+    
+    <!-- Tabla para mostrar la lista de clientes -->
+    <table id="Universidad-tabla">
+      <h1>universidades</h1>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Direccion</th>
+          <th>Telefono</th>   
+          <th>Acciones</th>                  
+        </tr>
+      </thead>
+      <tbody id="Universidad-lista"></tbody>
+    </table>
+
+    <script>
+      // Función para obtener y mostrar la lista de universidades
+      async function mostraruniversidades() {
+          const response = await fetch('/universidades'); // Hace una solicitud GET a la ruta /universidades
+          if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          const universidades = await response.json(); // Obtiene la respuesta como JSON
+          const UniversidadLista = document.getElementById('Universidad-lista'); // Asegúrate de que el ID sea correcto
+
+          // Borra cualquier elemento existente en la lista
+          UniversidadLista.innerHTML = '';
+
+          // Itera sobre la lista de universidades y los agrega como filas de la tabla en la página
+          universidades.forEach(Universidad => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                  <td><input type="text" id="edit-nombre-${Universidad._id}" value="${Universidad.nombre}"></td>
+                  <td><input type="text" id="edit-direccion-${Universidad._id}" value="${Universidad.direccion}"></td>
+                  <td><input type="text" id="edit-telefono-${Universidad._id}" value="${Universidad.telefono}"></td>
+                  <td>
+                      <button onclick="guardarEdicion('${Universidad._id}')">Editar</button>
+                      <button onclick="eliminarUniversidad('${Universidad._id}')">Eliminar</button>
+                  </td> 
+              `;
+              UniversidadLista.appendChild(tr);
+          });
+      }
+
+      // Función para eliminar una Universidad
+      async function eliminarUniversidad(id) {
+          const response = await fetch(`/universidades/${id}`, {
+            method: 'DELETE'
+          });
+          if (response.ok) {
+            mostraruniversidades();
+          } else {
+            alert('Error al eliminar la Universidad. Por favor, intenta de nuevo.');
+          }
+      }
+      
+      // Función para guardar la edición de una Universidad
+      async function guardarEdicion(id) {
+          const nuevoNombre = document.getElementById(`edit-nombre-${id}`).value;
+          const nuevaDireccion = document.getElementById(`edit-direccion-${id}`).value;
+          const nuevoTelefono = document.getElementById(`edit-telefono-${id}`).value;
+
+          const response = await fetch(`/universidades/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nombre: nuevoNombre, direccion: nuevaDireccion, telefono: nuevoTelefono })
+          });
+    
+          if (response.ok) {
+            mostraruniversidades();
+          } else {
+            alert('Error al guardar la edición de la Universidad. Por favor, intenta de nuevo.');
+          }
+      }
+      
+      // Llama a la función para mostrar la lista de universidades al cargar la página
+      mostraruniversidades();
+      
+      // Manejador de evento para agregar una nueva Universidad
+      document.getElementById('agregar-Universidad-form').addEventListener('submit', async function(event) {
+          event.preventDefault(); // Evita que se recargue la página al enviar el formulario
+    
+          const nombre = document.getElementById('nombre').value;
+          const direccion = document.getElementById('direccion').value;
+          const telefono = document.getElementById('telefono').value;
+
+          const response = await fetch('/universidades', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ nombre, direccion, telefono }) // Agregar los campos al objeto JSON
+      });
+
+      if (response.ok) {
+          mostraruniversidades();
+      } else {
+          alert('Error al agregar la Universidad. Por favor, intenta de nuevo.');
+      }
+
+      // Limpia los campos del formulario 
+      document.getElementById('nombre').value = '';
+      document.getElementById('direccion').value = '';
+      document.getElementById('telefono').value = '';
+  });
+  </script>      
+
+  <footer>
+      <p>&copy; 2024 Proyectos IU. Todos los derechos reservados.</p>
+  </footer>
+  </body>
+  </html>

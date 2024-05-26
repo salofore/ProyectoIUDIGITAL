@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyectos IU</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="Proyectos.css">
+</head>
+<body>
+    <header>
+        <h1><a href="Index.html">Proyectos IU</a></h1>
+        <nav>
+            <ul>
+                <li><a href="proyectos.html">Proyectos</a></li>                
+                <li><a href="Cliente.html">Cliente</a></li>
+                <li><a href="Etapa.html">Etapa</a></li>
+                <li><a href="TipoProyecto.html">Tipo proyecto</a></li>
+                <li><a href="Universidad.html">Universidad</a></li>           
+            </ul>
+        </nav>
+    </header>
+    
+    <h1>ADD proyectos</h1>
+
+    <form id="agregar-proyecto-form">
+      <input type="text" id="numero" name="numero" placeholder="Número de Proyecto" required>
+      <input type="text" id="titulo" name="titulo" placeholder="Título del Proyecto" required>
+      
+      <label for="fechaIniciacion">Fecha de Iniciación</label>
+      <input type="date" id="fechaIniciacion" name="fechaIniciacion" required>
+      
+      <label for="fechaEntrega">Fecha de Entrega</label>
+      <input type="date" id="fechaEntrega" name="fechaEntrega" required>
+      
+      <input type="number" id="valor" name="valor" placeholder="Valor del Proyecto" required>
+      
+      <select id="cliente" name="cliente" required>
+        <option value="">Seleccionar Cliente</option>
+      </select>
+      
+      <select id="tipoProyecto" name="tipoProyecto" required>
+        <option value="">Seleccionar Tipo de Proyecto</option>
+      </select>
+      
+      <select id="universidad" name="universidad" required>
+        <option value="">Seleccionar Universidad</option>
+      </select>      
+
+      <select id="etapa" name="etapa" required>
+        <option value="">Seleccionar Etapa</option>
+      </select>
+
+            <input type="hidden" id="proyecto-id" name="proyecto-id">
+      <button type="submit">Agregar Proyecto</button>
+  </form>
+
+  <table id="proyecto-tabla">
+    <thead>
+      <tr>
+        <th>Número</th>
+        <th>Título</th>
+        <th>Fecha de Iniciación</th>
+        <th>Fecha de Entrega</th>
+        <th>Valor</th>
+        <th>Cliente</th>
+        <th>Tipo de Proyecto</th>
+        <th>Universidad</th>
+        <th>etapa</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="proyecto-lista"></tbody>
+  </table>
+
+  <script>
+    async function fetchClientes() {
+      const response = await fetch('/clientes');
+      const clientes = await response.json();
+      const clienteSelect = document.getElementById('cliente');
+
+      clientes.forEach(cliente => {
+        const option = document.createElement('option');
+        option.value = cliente.nombre;
+        option.textContent = `${cliente.nombre} (${cliente.email})`;
+        clienteSelect.appendChild(option);
+      });
+    }
+
+    async function fetchTipoProyectos() {
+      const response = await fetch('/tipos');
+      const tiposProyecto = await response.json();
+      const tipoProyectoSelect = document.getElementById('tipoProyecto');
+
+      tiposProyecto.forEach(tipoProyecto => {
+        const option = document.createElement('option');
+        option.value = tipoProyecto.nombre;
+        option.textContent = tipoProyecto.nombre;
+        tipoProyectoSelect.appendChild(option);
+      });
+    }
+
+    async function fetchUniversidades() {
+      const response = await fetch('/universidades');
+      const universidades = await response.json();
+      const universidadSelect = document.getElementById('universidad');
+
+      universidades.forEach(universidad => {
+        const option = document.createElement('option');
+        option.value = universidad.nombre;
+        option.textContent = universidad.nombre;
+        universidadSelect.appendChild(option);
+      });
+    }
+
+    async function fetchEtapas() {
+      const response = await fetch('/etapas');
+      const etapas = await response.json();
+      const etapaSelect = document.getElementById('etapa');
+
+      etapas.forEach(etapa => {
+        const option = document.createElement('option');
+        option.value = etapa.nombre;
+        option.textContent = etapa.nombre;
+        etapaSelect.appendChild(option);
+      });
+    }
+
+    async function fetchEtapasOptions() {
+      try {
+        const response = await fetch('/etapas');
+        const etapas = await response.json();
+        return etapas.map(etapa => `<option value="${etapa.nombre}">${etapa.nombre}</option>`).join('');
+      } catch (error) {
+        console.error('Error al obtener las opciones de etapas:', error);
+        return '';
+      }
+    }
+
+    async function mostrarProyectos() {
+      try {
+        const etapasOptions = await fetchEtapasOptions();
+        const response = await fetch('/proyectos');
+        const proyectos = await response.json();
+        const proyectoLista = document.getElementById('proyecto-lista');
+
+        proyectoLista.innerHTML = '';
+
+        proyectos.forEach(proyecto => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${proyecto.numero}</td>
+            <td>${proyecto.titulo}</td>
+            <td>${proyecto.fechaIniciacion}</td>
+            <td>${proyecto.fechaEntrega}</td>
+            <td>${proyecto.valor}</td>
+            <td>${proyecto.cliente}</td>
+            <td>${proyecto.tipoProyecto}</td>
+            <td>${proyecto.universidad}</td>
+            <td>
+              <select id="etapa-${proyecto._id}">
+                <option value="">Seleccionar Etapa</option>
+                ${etapasOptions.replace(new RegExp(`"${proyecto.etapa}"`), `"${proyecto.etapa}" selected`)}
+              </select>
+            </td>
+            <td>
+              <button onclick="modificarProyecto('${proyecto._id}')">Modificar</button>         
+              <button onclick="eliminarProyecto('${proyecto._id}')">Eliminar</button>
+            </td>
+          `;
+          proyectoLista.appendChild(tr);
+        });
+      } catch (error) {
+        console.error('Error al mostrar proyectos:', error);
+      }
+    }
+
+    async function modificarProyecto(id) {
+        const etapa = document.getElementById(`etapa-${id}`).value;
+        
+        const response = await fetch(`/proyectos/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ etapa })
+        });
+
+        if (response.ok) {
+            mostrarProyectos();
+        } else {
+            alert('Error al modificar el proyecto. Por favor, intenta de nuevo.');
+        }
+    }
+
+       // Función para |inar un proyecto
+    async function eliminarProyecto(id) {
+      const response = await fetch(`/proyectos/${id}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        mostrarProyectos();
+      } else {
+        alert('Error al eliminar el proyecto. Por favor, intenta de nuevo.');
+      }
+    }
+
+    document.getElementById('agregar-proyecto-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const numero = document.getElementById('numero').value;
+        const titulo = document.getElementById('titulo').value;
+        const fechaIniciacion = document.getElementById('fechaIniciacion').value;
+        const fechaEntrega = document.getElementById('fechaEntrega').value;
+        const valor = document.getElementById('valor').value;
+        const cliente = document.getElementById('cliente').value;
+        const tipoProyecto = document.getElementById('tipoProyecto').value;
+        const universidad = document.getElementById('universidad').value;
+        const etapa = document.getElementById('etapa').value;
+
+        const response = await fetch('/proyectos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                numero, 
+                titulo, 
+                fechaIniciacion, 
+                fechaEntrega, 
+                valor, 
+                cliente, 
+                tipoProyecto, 
+                universidad, 
+                etapa 
+            })
+        });
+
+        if (response.ok) {
+            mostrarProyectos();
+        } else {
+            alert('Error al agregar el proyecto. Por favor, intenta de nuevo.');
+        }
+
+        document.getElementById('agregar-proyecto-form').reset();
+    });
+
+    mostrarProyectos();
+    fetchClientes();
+    fetchTipoProyectos();
+    fetchUniversidades();
+    fetchEtapas();
+    
+</script>
+</body>
+</html>

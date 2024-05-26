@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyectos IU</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="StyleEtapa.css">
+</head>
+
+<body>
+    <header>
+        <h1><a href="Index.html">Proyectos IU</a></h1>
+        <nav>
+            <ul>
+                <li><a href="proyectos.html">Proyectos</a></li>                
+                <li><a href="Cliente.html">Cliente</a></li>
+                <li><a href="Etapa.html">Etapa</a></li>
+                <li><a href="TipoProyecto.html">Tipo proyecto</a></li>
+                <li><a href="Universidad.html">Universidad</a></li>           
+            </ul>
+        </nav>
+    </header>
+    
+    <h1>ADD Etapa</h1>
+
+    <form id="agregar-etapa-form">
+      <input type="text" id="nombre" name="nombre" placeholder="Nombre" required>
+      <button type="submit">Agregar etapa</button>
+  </form>   
+    
+    <!-- Tabla para mostrar la lista de clientes -->
+    <table id="etapa-tabla">
+      <h1>Etapas</h1>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="etapa-lista"></tbody>
+    </table>
+
+    <script>
+
+      async function mostrarEtapas() {
+          const response = await fetch('/etapas');
+          const etapas = await response.json();
+          const etapaLista = document.getElementById('etapa-lista');
+
+          etapaLista.innerHTML = '';
+    
+          etapas.forEach(etapa => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><input type="text" id="edit-nombre-${etapa._id}" value="${etapa.nombre}"></td>
+              <td>
+                <button onclick="guardarEdicion('${etapa._id}')">Editar</button>
+                <button onclick="eliminarEtapa('${etapa._id}')">Eliminar</button>
+              </td> 
+            `;
+            etapaLista.appendChild(tr);
+          });
+      }
+      
+      async function eliminarEtapa(id) {
+          const response = await fetch(`/etapas/${id}`, {
+            method: 'DELETE'
+          });
+          if (response.ok) {
+            mostrarEtapas();
+          } else {
+            alert('Error al eliminar la etapa. Por favor, intenta de nuevo.');
+          }
+      }
+      
+      async function guardarEdicion(id) {
+          const nuevoNombre = document.getElementById(`edit-nombre-${id}`).value;
+    
+          const response = await fetch(`/etapas/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nombre: nuevoNombre})
+          });
+    
+          if (response.ok) {
+            mostrarEtapas();
+          } else {
+            alert('Error al guardar la edición de la etapa. Por favor, intenta de nuevo.');
+          }
+      }
+      
+      mostrarEtapas();
+      
+      document.getElementById('agregar-etapa-form').addEventListener('submit', async function(event) {
+          event.preventDefault();
+    
+          const nombre = document.getElementById('nombre').value;
+    
+          const response = await fetch('/etapas', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({nombre})
+          });
+    
+          if (response.ok) {
+            mostrarEtapas();
+          } else {
+            alert('Error al agregar la etapa. Por favor, intenta de nuevo.');
+          }
+    
+          document.getElementById('nombre').value = '';
+      });
+    </script>    
+
+    <footer>
+        <p>&copy; 2024 Proyectos IU. Todos los derechos reservados.</p>
+    </footer>
+</body>
+</html>

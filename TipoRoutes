@@ -1,0 +1,52 @@
+const express = require('express');
+const router = express.Router();
+const Tipo = require('../models/Tipo'); // Asegúrate de que el modelo esté en la ruta correcta
+
+// Ruta para obtener todos los tipos de proyecto
+router.get('/', async (req, res) => {
+  try {
+    const tipos = await Tipo.find();
+    res.json(tipos);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Ruta para crear un nuevo tipo de proyecto
+router.post('/', async (req, res) => {
+  const tipo = new Tipo(req.body);
+  try {
+    const nuevoTipo = await tipo.save();
+    res.status(201).json(nuevoTipo);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Ruta para eliminar un tipo de proyecto
+router.delete('/:id', async (req, res) => {
+  try {
+    const tipo = await Tipo.findByIdAndDelete(req.params.id);
+    if (!tipo) return res.status(404).json({ message: 'Tipo de proyecto no encontrado' });
+    res.json({ message: 'Tipo de proyecto eliminado' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Ruta para actualizar un tipo de proyecto
+router.put('/:id', async (req, res) => {
+  try {
+    const tipoActualizado = await Tipo.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!tipoActualizado) return res.status(404).json({ message: 'Tipo de proyecto no encontrado' });
+    res.json(tipoActualizado);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+module.exports = router;

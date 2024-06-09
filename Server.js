@@ -27,9 +27,6 @@ app.use('/clientes', clienteRoutes);
 app.use('/etapas', etapaRoutes);
 app.use('/tipos', tipoRoutes);
 app.use('/universidades', universidadRoutes);
-app.use('/proyectos', proyectoRoutes); // Usa las rutas de proyectos
+app.use('/proyectos', proyectoRoutes);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor escuchando en el puerto ${PORT}`);
-});
+module.exports = app;
